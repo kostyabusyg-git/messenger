@@ -34,11 +34,15 @@
 
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        import { injectSpeedInsights } from 'https://esm.sh/@vercel/speed-insights@2.0.0';
 
         const SUPABASE_URL = "https://mhrylswcajeoamsogydc.supabase.co";
         const SUPABASE_KEY = "sb_publishable_QNK3ulcLA257InnrWjTDGw_DSVXmrj2";
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Initialize Vercel Speed Insights
+        injectSpeedInsights();
 
         const myUserId = 'user_' + Math.random().toString(36).substring(2, 11);
 
