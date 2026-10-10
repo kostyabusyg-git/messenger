@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Приватный Мессенджер</title>
+    <!-- Подключаем официальную библиотеку Supabase -->
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0e1621; color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .chat-container { width: 100%; max-width: 600px; height: 80vh; background: #17212b; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .chat-header { padding: 15px 20px; background: #24303f; border-bottom: 1px solid #101921; font-weight: bold; font-size: 1.1rem; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 75%; padding: 10px 14px; border-radius: 10px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+        .message.sent { background: #2b5278; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .message.received { background: #182533; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-input-area { padding: 15px; background: #17212b; display: flex; gap: 10px; border-top: 1px solid #101921; }
+        .chat-input { flex: 1; padding: 12px; background: #24303f; border: none; border-radius: 8px; color: #fff; outline: none; font-size: 0.95rem; }
+        .send-btn { background: #5288c1; color: white; border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .send-btn:hover { background: #4172a5; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">🔒 Наш защищенный чат</div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <form class="chat-input-area" id="chatForm">
+            <input type="text" id="messageInput" class="chat-input" placeholder="Напишите сообщение..." autocomplete="off" required>
+            <button type="submit" class="send-btn">Отправить</button>
+        </form>
+    </div>
+
+    <script>
+        // === НАСТРОЙКА СУПАБЕЙЗА ===
+        const SUPABASE_URL = "https://mhrylswcajeoamsogydc.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_QNK3ulcLA257InnrWjTDGw_DSVXmrj2";
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Генерируем случайное имя пользователя для этой вкладки
+        const myUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const chatMessages = document.getElementById('chatMessages');
+
+        // 1. Функция отображения сообщения на экране
+        function renderMessage(text, senderId) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            
+            if (senderId === myUserId) {
+                messageDiv.classList.add('sent');
+            } else {
+                messageDiv.classList.add('received');
+            }
+            
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 2. Загружаем старые сообщения при запуске чата
+        async function loadMessages() {
+            let { data: messages, error } = await supabase
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (messages) {
+                messages.forEach(msg => renderMessage(msg.text, msg.user_id));
+            }
+        }
+        loadMessages();
+
+        // 3. Отправка нового сообщения в базу данных
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            if (text === '') return;
+
+            messageInput.value = '';
+
+            // Сохраняем в Supabase
+            await supabase
+                .from('messages')
+                .insert([{ text: text, user_id: myUserId }]);
+        });
+
+        // 4. ЖИВАЯ СВЯЗЬ: Слушаем базу данных
+        supabase
+            .channel('public:messages')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                renderMessage(payload.new.text, payload.new.user_id);
+            })
+            .subscribe();
+    </script>
+</body>
+</html>
