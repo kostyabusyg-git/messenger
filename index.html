@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мой Приватный Мессенджер</title>
-    <!-- Подключаем официальную библиотеку Supabase -->
-    <script src="https://jsdelivr.net"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #0e1621; color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; }
@@ -25,88 +23,92 @@
 
     <div class="chat-container">
         <div class="chat-header">🔒 Наш защищенный чат</div>
-        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message received" id="statusMessage">Подключение к серверу чата...</div>
+        </div>
         <form class="chat-input-area" id="chatForm">
             <input type="text" id="messageInput" class="chat-input" placeholder="Напишите сообщение..." autocomplete="off" required>
             <button type="submit" class="send-btn">Отправить</button>
         </form>
     </div>
-       <script>
-        // === НАСТРОЙКА СУПАБЕЙЗА ===
-        const SUPABASE_URL = "https://supabase.co";
-        const SUPABASE_KEY = "sb_publishable_QNK3ulcLA257InnrWjTDGw_DSVXmrj2";
-        
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Генерируем случайное имя пользователя для этой вкладки
-        const myUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+        const SUPABASE_URL = "https://mhrylswcajeoamsogydc.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_QNK3ulcLA257InnrWjTDGw_DSVXmrj2";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const myUserId = 'user_' + Math.random().toString(36).substring(2, 11);
 
         const chatForm = document.getElementById('chatForm');
         const messageInput = document.getElementById('messageInput');
         const chatMessages = document.getElementById('chatMessages');
+        const statusMessage = document.getElementById('statusMessage');
 
-        // Массив, чтобы не дублировать уже отрисованные сообщения
-        let loadedMessageIds = new Set();
+        const loadedMessageIds = new Set();
+        let isFetching = false;
 
-        // 1. Функция отображения сообщения на экране
         function renderMessage(id, text, senderId) {
-            if (loadedMessageIds.has(id)) return; // Если сообщение уже есть на экране — игнорируем
+            if (loadedMessageIds.has(id)) return;
             loadedMessageIds.add(id);
+
+            if (statusMessage && statusMessage.parentNode) {
+                statusMessage.style.display = 'none';
+            }
 
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
-            
-            if (senderId === myUserId) {
-                messageDiv.classList.add('sent');
-            } else {
-                messageDiv.classList.add('received');
-            }
-            
+            messageDiv.classList.add(senderId === myUserId ? 'sent' : 'received');
             messageDiv.textContent = text;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // 2. Функция загрузки новых сообщений из базы данных
         async function fetchMessages() {
+            if (isFetching) return;
+            isFetching = true;
             try {
-                let { data: messages, error } = await supabase
+                const { data: messages, error } = await supabase
                     .from('messages')
                     .select('*')
                     .order('created_at', { ascending: true });
 
-                if (messages) {
+                if (error) throw error;
+
+                if (messages && messages.length > 0) {
                     messages.forEach(msg => renderMessage(msg.id, msg.text, msg.user_id));
+                } else if (statusMessage) {
+                    statusMessage.textContent = "Сообщений пока нет. Будь первым!";
                 }
             } catch (err) {
-                console.error("Ошибка обновления чата:", err);
+                if (statusMessage) statusMessage.textContent = "Ошибка сети. Чат обновится сам...";
+                console.error("Ошибка загрузки:", err);
+            } finally {
+                isFetching = false;
             }
         }
 
-        // Запускаем первую загрузку при старте страницы
         fetchMessages();
-
-        // 🔄 АВТО-ОБНОВЛЕНИЕ: Каждые 2 секунды проверяем, нет ли новых сообщений в базе
         setInterval(fetchMessages, 2000);
 
-        // 3. Отправка нового сообщения в базу данных
-        chatForm.addEventListener('submit', async function(e) {
+        chatForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const text = messageInput.value.trim();
             if (text === '') return;
 
-            messageInput.value = '';
-
             try {
-                // Сохраняем в Supabase
-                await supabase
+                const { error } = await supabase
                     .from('messages')
                     .insert([{ text: text, user_id: myUserId }]);
-                
-                // Сразу же обновляем чат, чтобы наше сообщение мгновенно появилось
+
+                if (error) throw error;
+                messageInput.value = '';
                 fetchMessages();
             } catch (err) {
-                alert("Не удалось отправить сообщение. Проверь сеть.");
+                console.error("Ошибка отправки:", err);
+                alert("Ошибка при отправке!");
             }
         });
     </script>
