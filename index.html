@@ -31,10 +31,9 @@
             <button type="submit" class="send-btn">Отправить</button>
         </form>
     </div>
-
-    <script>
+       <script>
         // === НАСТРОЙКА СУПАБЕЙЗА ===
-        const SUPABASE_URL = "https://mhrylswcajeoamsogydc.supabase.co";
+        const SUPABASE_URL = "https://supabase.co";
         const SUPABASE_KEY = "sb_publishable_QNK3ulcLA257InnrWjTDGw_DSVXmrj2";
         
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -46,8 +45,14 @@
         const messageInput = document.getElementById('messageInput');
         const chatMessages = document.getElementById('chatMessages');
 
+        // Массив, чтобы не дублировать уже отрисованные сообщения
+        let loadedMessageIds = new Set();
+
         // 1. Функция отображения сообщения на экране
-        function renderMessage(text, senderId) {
+        function renderMessage(id, text, senderId) {
+            if (loadedMessageIds.has(id)) return; // Если сообщение уже есть на экране — игнорируем
+            loadedMessageIds.add(id);
+
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
             
@@ -62,18 +67,27 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // 2. Загружаем старые сообщения при запуске чата
-        async function loadMessages() {
-            let { data: messages, error } = await supabase
-                .from('messages')
-                .select('*')
-                .order('created_at', { ascending: true });
+        // 2. Функция загрузки новых сообщений из базы данных
+        async function fetchMessages() {
+            try {
+                let { data: messages, error } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: true });
 
-            if (messages) {
-                messages.forEach(msg => renderMessage(msg.text, msg.user_id));
+                if (messages) {
+                    messages.forEach(msg => renderMessage(msg.id, msg.text, msg.user_id));
+                }
+            } catch (err) {
+                console.error("Ошибка обновления чата:", err);
             }
         }
-        loadMessages();
+
+        // Запускаем первую загрузку при старте страницы
+        fetchMessages();
+
+        // 🔄 АВТО-ОБНОВЛЕНИЕ: Каждые 2 секунды проверяем, нет ли новых сообщений в базе
+        setInterval(fetchMessages, 2000);
 
         // 3. Отправка нового сообщения в базу данных
         chatForm.addEventListener('submit', async function(e) {
@@ -83,19 +97,18 @@
 
             messageInput.value = '';
 
-            // Сохраняем в Supabase
-            await supabase
-                .from('messages')
-                .insert([{ text: text, user_id: myUserId }]);
+            try {
+                // Сохраняем в Supabase
+                await supabase
+                    .from('messages')
+                    .insert([{ text: text, user_id: myUserId }]);
+                
+                // Сразу же обновляем чат, чтобы наше сообщение мгновенно появилось
+                fetchMessages();
+            } catch (err) {
+                alert("Не удалось отправить сообщение. Проверь сеть.");
+            }
         });
-
-        // 4. ЖИВАЯ СВЯЗЬ: Слушаем базу данных
-        supabase
-            .channel('public:messages')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                renderMessage(payload.new.text, payload.new.user_id);
-            })
-            .subscribe();
     </script>
 </body>
 </html>
