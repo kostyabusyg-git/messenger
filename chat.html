@@ -83,6 +83,7 @@
       <div class="name" id="room-name-display">Комната</div>
       <div class="status" id="status">Подключение...</div>
     </div>
+    <button class="icon-btn" id="notify-btn" title="Уведомления">🔔</button>
     <button class="icon-btn" id="contacts-btn" title="Контакты">👥</button>
     <button class="icon-btn" id="settings-btn">⚙️</button>
   </div>
@@ -118,6 +119,8 @@
 <script type="module">
   const SUPABASE_URL = 'https://ekqnbtjjqatvwsxlzenr.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_AK4tP549G2IjTkSOeNvC4g_Z2ViaGc_';
+  const VAPID_PUBLIC_KEY = 'BBi0jwVf2KNsNhFJNffFdjH4EaUTVBN72bmCZPuVrXFB5HuHNstO44tfXj91TcPRVIxeNqkNCdncE8tR19Kzj7M';
+
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -125,13 +128,11 @@
   const currentRoom = localStorage.getItem('chat_saved_room');
   if (!myName || !currentRoom) { window.location.href = 'index.html'; }
 
-  // Применяем настройки внешнего вида
   document.documentElement.style.setProperty('--accent', localStorage.getItem('chat_accent') || '#2aabee');
   document.documentElement.style.setProperty('--chat-bg', localStorage.getItem('chat_bg') || '#0e1621');
   document.documentElement.style.setProperty('--msg-font', (localStorage.getItem('chat_font') || '14') + 'px');
   document.documentElement.style.setProperty('--msg-radius', (localStorage.getItem('chat_radius') || '16') + 'px');
-  const showTime = localStorage.getItem('chat_time') !== 'off';
-  document.documentElement.style.setProperty('--time-display', showTime ? 'inline' : 'none');
+  document.documentElement.style.setProperty('--time-display', localStorage.getItem('chat_time') !== 'off' ? 'inline' : 'none');
 
   const messagesEl = document.getElementById('messages');
   const inputEl = document.getElementById('input');
@@ -179,6 +180,44 @@
   }
 
   supabase.from('profiles').upsert({ user_name: myName }).then(() => {}).catch(() => {});
+
+  // ---- Push-подписка ----
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+  }
+
+  document.getElementById('notify-btn').onclick = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      statusEl.textContent = 'Уведомления не поддерживаются';
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { statusEl.textContent = 'Уведомления запрещены'; return; }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+      const json = sub.toJSON();
+      const { error } = await supabase.from('push_subscriptions').upsert({
+        user_name: myName,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth
+      }, { onConflict: 'endpoint' });
+      if (error) statusEl.textContent = 'Подписка: ' + error.message;
+      else statusEl.textContent = '🔔 Уведомления включены';
+    } catch (e) {
+      statusEl.textContent = 'Подписка: ' + e.message;
+    }
+  };
 
   async function initChat() {
     statusEl.textContent = 'Загрузка истории...';
