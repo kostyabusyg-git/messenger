@@ -14,8 +14,12 @@
   #app { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #17212b; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
   @media (min-width: 481px) { #app { top: 20px; bottom: 20px; border-radius: 16px; } }
 
+  /* КЛЮЧЕВОЕ: экраны жёстко скрываются через display: none */
+  .screen { display: none; flex: 1; flex-direction: column; min-height: 0; height: 100%; overflow: hidden; }
+  .screen.active { display: flex; }
+
   /* ЭКРАН ВХОДА */
-  #auth-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 30px; overflow-y: auto; }
+  #auth-screen { align-items: center; justify-content: center; gap: 18px; padding: 30px; overflow-y: auto; }
   #auth-screen > * { flex-shrink: 0; }
   #auth-screen .logo { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, var(--accent, #2aabee), #229ed9); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(42,171,238,0.3); animation: float 3s ease-in-out infinite; }
   @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
@@ -34,8 +38,6 @@
   #auth-error { color: #e74c3c; font-size: 13px; min-height: 20px; text-align: center; }
 
   /* ЧАТ */
-  #chat-screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-  #chat-screen.hidden { display: none !important; }
   #header { padding: 14px 18px; background: #1c2733; border-bottom: 1px solid #101921; display: flex; align-items: center; gap: 12px; flex-shrink: 0; z-index: 2; }
   #header .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--accent, #2aabee), #229ed9); display: flex; align-items: center; justify-content: center; font-size: 19px; color: white; font-weight: 600; flex-shrink: 0; cursor: pointer; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
   #header .avatar:hover { transform: scale(1.06); }
@@ -98,8 +100,6 @@
   @keyframes blink { 50% { opacity: 0.3; } }
 
   /* НАСТРОЙКИ */
-  #settings-screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-  #settings-screen.hidden { display: none !important; }
   #settings-header { padding: 16px 18px; background: #1c2733; border-bottom: 1px solid #101921; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
   #settings-header h2 { font-size: 18px; font-weight: 600; flex: 1; }
   #settings-header button { background: none; border: none; color: #7d8b99; font-size: 22px; cursor: pointer; padding: 4px 8px; }
@@ -137,7 +137,7 @@
 <body>
 
 <div id="app">
-  <div id="auth-screen">
+  <div id="auth-screen" class="screen active">
     <div class="logo">
       <svg viewBox="0 0 100 100" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 70 L30 35 L45 55 L60 25 L90 70 Z" fill="#ffffff" opacity="0.95"/>
@@ -167,7 +167,7 @@
     <div id="auth-error"></div>
   </div>
 
-  <div id="chat-screen" class="hidden">
+  <div id="chat-screen" class="screen">
     <div id="header">
       <div class="avatar" id="user-avatar">?</div>
       <div class="info">
@@ -197,7 +197,7 @@
     </div>
   </div>
 
-  <div id="settings-screen" class="hidden">
+  <div id="settings-screen" class="screen">
     <div id="settings-header">
       <button id="settings-back">←</button>
       <h2>Настройки</h2>
@@ -259,7 +259,7 @@
           <div class="info-row"><span>Мессенджер</span><span class="value">Урал</span></div>
           <div class="info-row"><span>Комната</span><span class="value" id="about-room">—</span></div>
           <div class="info-row"><span>Онлайн</span><span class="value" id="about-online">—</span></div>
-          <div class="info-row"><span>Версия</span><span class="value">2.1</span></div>
+          <div class="info-row"><span>Версия</span><span class="value">2.2</span></div>
         </div>
       </div>
     </div>
@@ -343,6 +343,14 @@
     } catch (e) {}
   }
 
+  // Показ только одного экрана
+  function showScreen(screen) {
+    authScreen.classList.remove('active');
+    chatScreen.classList.remove('active');
+    settingsScreen.classList.remove('active');
+    screen.classList.add('active');
+  }
+
   tabLogin.addEventListener('click', () => { tabLogin.classList.add('active'); tabCreate.classList.remove('active'); formLogin.classList.remove('hidden'); formCreate.classList.add('hidden'); authError.textContent = ''; });
   tabCreate.addEventListener('click', () => { tabCreate.classList.add('active'); tabLogin.classList.remove('active'); formCreate.classList.remove('hidden'); formLogin.classList.add('hidden'); authError.textContent = ''; });
 
@@ -387,8 +395,7 @@
   });
 
   function enterChat() {
-    authScreen.classList.add('hidden');
-    chatScreen.classList.remove('hidden');
+    showScreen(chatScreen);
     avatarEl.textContent = myName.charAt(0).toUpperCase();
     roomNameDisplay.textContent = '# ' + currentRoom;
     initChat(); initPresence();
@@ -627,15 +634,13 @@
   }
 
   settingsBtn.addEventListener('click', () => {
-    chatScreen.classList.add('hidden');
-    settingsScreen.classList.remove('hidden');
+    showScreen(settingsScreen);
     document.getElementById('profile-name').textContent = myName;
     document.getElementById('profile-room').textContent = '# ' + currentRoom;
     document.getElementById('about-room').textContent = '# ' + currentRoom;
   });
   settingsBack.addEventListener('click', () => {
-    settingsScreen.classList.add('hidden');
-    chatScreen.classList.remove('hidden');
+    showScreen(chatScreen);
   });
 
   document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -690,4 +695,4 @@
   }
 </script>
 </body>
-       </html>
+</html>
