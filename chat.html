@@ -5,152 +5,218 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Урал</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#1a1d21">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a1a; }
-  #app { position: fixed; inset: 0; max-width: 900px; margin: 0 auto; background: #fff; display: flex; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.08); }
-  @media (min-width: 901px) { #app { top: 20px; bottom: 20px; border-radius: 20px; } }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d0f12; color: #e8eaed; }
+  #app { position: fixed; inset: 0; max-width: 900px; margin: 0 auto; background: #1a1d21; display: flex; overflow: hidden; box-shadow: 0 0 60px rgba(0,0,0,0.5); }
+  @media (min-width: 901px) { #app { top: 20px; bottom: 20px; border-radius: 16px; } }
 
-  /* ---- Боковая панель (контакты) ---- */
-  #sidebar {
-    width: 260px; background: #fff; border-right: 1px solid #e4e6eb;
-    display: flex; flex-direction: column; flex-shrink: 0;
-    transition: transform 0.3s ease;
+  /* ===== ШАПКА ===== */
+  #header {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+    padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+    background: rgba(26,29,33,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
-  #sidebar.hidden { transform: translateX(-100%); position: absolute; height: 100%; z-index: 20; }
-  #sidebar-header { padding: 16px; border-bottom: 1px solid #e4e6eb; }
-  #sidebar-header h1 { font-size: 18px; font-weight: 700; color: #2aabee; margin-bottom: 12px; }
-  #add-contact-row { display: flex; gap: 6px; }
-  #add-contact-row input { flex: 1; padding: 8px 12px; border: 1px solid #e4e6eb; border-radius: 10px; background: #f5f6f8; color: #1a1a1a; font-size: 13px; outline: none; }
-  #add-contact-row input:focus { border-color: #2aabee; }
-  #add-contact-row button { padding: 8px 12px; border: none; border-radius: 10px; background: #2aabee; color: white; font-size: 13px; font-weight: 600; cursor: pointer; }
-  #contacts-list { flex: 1; overflow-y: auto; padding: 8px; }
-  .contact-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; cursor: pointer; transition: background 0.15s; }
-  .contact-item:hover { background: #f5f6f8; }
-  .contact-item .c-avatar { width: 40px; height: 40px; border-radius: 50%; background: #2aabee; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: white; flex-shrink: 0; overflow: hidden; }
-  .contact-item .c-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .contact-item .c-name { flex: 1; font-size: 14px; font-weight: 500; }
-  .contact-item .c-del { background: none; border: none; color: #b0b3b8; font-size: 14px; cursor: pointer; padding: 4px; }
-  #sidebar-footer { padding: 12px 16px; border-top: 1px solid #e4e6eb; display: flex; gap: 8px; }
-  #sidebar-footer button { flex: 1; padding: 10px; border: none; border-radius: 10px; background: #f5f6f8; color: #1a1a1a; font-size: 13px; cursor: pointer; }
-  #sidebar-footer button:hover { background: #e4e6eb; }
-
-  /* ---- Основной чат ---- */
-  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #f0f2f5; }
-  #header { padding: 12px 16px; background: #fff; border-bottom: 1px solid #e4e6eb; display: flex; align-items: center; gap: 10px; flex-shrink: 0; z-index: 2; }
-  #menu-btn { display: none; background: none; border: none; font-size: 22px; color: #1a1a1a; cursor: pointer; padding: 4px 8px; }
-  #header .avatar { width: 42px; height: 42px; border-radius: 50%; background: #2aabee; display: flex; align-items: center; justify-content: center; font-size: 19px; color: white; font-weight: 600; flex-shrink: 0; overflow: hidden; cursor: pointer; }
+  #header .avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent, #2aabee), #1a8fd1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; color: white; font-weight: 700; overflow: hidden;
+    cursor: pointer; position: relative;
+  }
   #header .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  #header .avatar::after {
+    content: ''; position: absolute; bottom: 1px; right: 1px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #2ecc71; border: 2px solid #1a1d21;
+  }
   #header .info { flex: 1; min-width: 0; }
-  #header .info .name { font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #header .info .status { font-size: 12px; color: #65676b; }
-  #header .icon-btn { background: none; border: none; color: #65676b; font-size: 19px; cursor: pointer; padding: 6px; border-radius: 50%; flex-shrink: 0; }
-  #header .icon-btn:hover { background: #f5f6f8; }
+  #header .info .name { font-weight: 700; font-size: 15px; color: #e8eaed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #header .info .status { font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 4px; }
+  #header .info .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #2ecc71; }
+  #header .icon-btn {
+    background: none; border: none; color: #9ca3af; font-size: 18px;
+    cursor: pointer; padding: 8px; border-radius: 10px; flex-shrink: 0;
+    transition: 0.15s;
+  }
+  #header .icon-btn:hover { background: rgba(255,255,255,0.06); color: #e8eaed; }
 
-  #online-list { display: flex; gap: 6px; padding: 10px 16px; overflow-x: auto; background: #fff; border-bottom: 1px solid #e4e6eb; flex-shrink: 0; }
-  #online-list:empty { display: none; }
-  .online-badge { display: flex; align-items: center; gap: 5px; font-size: 12px; background: #f5f6f8; color: #1a1a1a; padding: 3px 10px 3px 3px; border-radius: 14px; flex-shrink: 0; }
-  .online-badge .dot-avatar { width: 18px; height: 18px; border-radius: 50%; background: #2aabee; display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: 600; overflow: hidden; }
+  /* ===== КОНТЕНТ ===== */
+  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 64px; position: relative; }
+  #online-strip {
+    padding: 8px 16px; display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  #online-strip:empty { display: none; }
+  .online-badge {
+    display: flex; align-items: center; gap: 6px; font-size: 12px;
+    background: rgba(255,255,255,0.04); color: #9ca3af;
+    padding: 3px 10px 3px 3px; border-radius: 14px; flex-shrink: 0;
+  }
+  .online-badge .dot-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--accent, #2aabee); display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: 700; overflow: hidden; }
   .online-badge .dot-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-  #messages { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  /* ===== СООБЩЕНИЯ ===== */
+  #messages {
+    flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    padding: 16px; display: flex; flex-direction: column;
+    background: var(--chat-bg, #1a1d21);
+    gap: 2px;
+  }
   #messages::-webkit-scrollbar { width: 4px; }
-  #messages::-webkit-scrollbar-thumb { background: #d0d3d8; border-radius: 4px; }
-  .msg-wrap { display: flex; flex-direction: column; flex-shrink: 0; animation: msgIn 0.25s ease; max-width: 80%; }
-  .msg-wrap.self { align-self: flex-end; align-items: flex-end; }
-  .msg-wrap.other { align-self: flex-start; align-items: flex-start; }
-  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.4; word-break: break-word; position: relative; }
-  .msg.self { background: #2aabee; color: #fff; border-bottom-right-radius: 4px; }
-  .msg.other { background: #fff; color: #1a1a1a; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
-  .msg .name { font-size: 11px; font-weight: 700; color: #2aabee; margin-bottom: 3px; }
-  .msg .time { display: var(--time-display, inline); font-size: 10px; color: rgba(0,0,0,0.3); float: right; margin-left: 8px; margin-top: 4px; }
-  .msg.self .time { color: rgba(255,255,255,0.6); }
-  .msg img.attach { max-width: 100%; height: auto; border-radius: 12px; margin-top: 6px; display: block; cursor: pointer; }
-  .msg audio { width: 100%; margin-top: 6px; border-radius: 8px; }
-  .msg .reply-quote { background: rgba(0,0,0,0.06); border-left: 3px solid #2aabee; padding: 5px 10px; margin-bottom: 5px; border-radius: 6px; font-size: 12px; opacity: 0.85; }
-  .msg.self .reply-quote { background: rgba(255,255,255,0.15); }
+  #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-  /* Действия (long press) */
-  .msg .actions { display: none; position: absolute; bottom: 100%; right: 0; margin-bottom: 4px; background: #fff; border-radius: 12px; padding: 4px; gap: 2px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 10; }
-  .msg .actions.show { display: flex; }
-  .msg .actions button { background: none; border: none; color: #65676b; font-size: 16px; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
-  .msg .actions button:hover { background: #f5f6f8; color: #1a1a1a; }
+  .msg-wrap {
+    display: flex; gap: 10px; padding: 6px 8px; border-radius: 8px;
+    flex-shrink: 0; transition: background 0.15s;
+    animation: msgIn 0.2s ease;
+  }
+  @keyframes msgIn { from { opacity: 0; } to { opacity: 1; } }
+  .msg-wrap:hover { background: rgba(255,255,255,0.02); }
+  .msg-wrap .m-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: var(--accent, #2aabee); display: flex; align-items: center;
+    justify-content: center; font-size: 14px; font-weight: 700; color: white; overflow: hidden;
+  }
+  .msg-wrap .m-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .msg-wrap .m-body { flex: 1; min-width: 0; }
+  .msg-wrap .m-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+  .msg-wrap .m-name { font-size: 13px; font-weight: 700; color: #e8eaed; }
+  .msg-wrap.self .m-name { color: var(--accent, #2aabee); }
+  .msg-wrap .m-time { font-size: 11px; color: #4b5563; }
+  .msg-wrap .m-text { font-size: 14px; line-height: 1.5; color: #d1d5db; word-break: break-word; }
+  .msg-wrap.self .m-text { color: #e8eaed; }
+  .msg-wrap .m-text img.attach { max-width: 100%; height: auto; border-radius: 10px; margin-top: 6px; display: block; cursor: pointer; }
+  .msg-wrap .m-text audio { width: 100%; margin-top: 6px; border-radius: 8px; }
+  .msg-wrap .reply-quote { background: rgba(255,255,255,0.04); border-left: 3px solid var(--accent, #2aabee); padding: 4px 8px; margin-bottom: 4px; border-radius: 4px; font-size: 12px; color: #9ca3af; }
+
+  /* Контекстное меню */
+  .msg-wrap .ctx {
+    display: none; position: absolute; right: 16px; top: 0;
+    background: #24272c; border-radius: 10px; padding: 4px; gap: 2px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 20;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .msg-wrap .ctx.show { display: flex; }
+  .msg-wrap .ctx button {
+    background: none; border: none; color: #9ca3af; font-size: 16px;
+    cursor: pointer; padding: 6px 10px; border-radius: 6px;
+  }
+  .msg-wrap .ctx button:hover { background: rgba(255,255,255,0.06); color: #e8eaed; }
 
   .reactions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
-  .reaction-badge { font-size: 11px; background: #fff; color: #1a1a1a; padding: 2px 8px; border-radius: 10px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
-  .reaction-badge.mine { background: #2aabee; color: white; }
+  .reaction-badge {
+    font-size: 11px; background: rgba(255,255,255,0.04); color: #d1d5db;
+    padding: 2px 8px; border-radius: 10px; cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .reaction-badge.mine { background: rgba(42,171,238,0.15); color: var(--accent, #2aabee); border-color: rgba(42,171,238,0.3); }
 
-  /* Ввод */
-  #input-area { padding: 12px 16px; background: #fff; border-top: 1px solid #e4e6eb; display: flex; gap: 8px; align-items: center; flex-shrink: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); z-index: 2; }
-  #attach, #voice-btn { width: 40px; height: 40px; border: none; border-radius: 50%; background: #f5f6f8; color: #65676b; font-size: 18px; cursor: pointer; flex-shrink: 0; transition: 0.15s; }
-  #attach:hover, #voice-btn:hover { background: #e4e6eb; }
-  #attach:disabled, #voice-btn:disabled { opacity: 0.5; }
+  /* ===== ПОЛЕ ВВОДА ===== */
+  #input-area {
+    padding: 12px 16px; display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: rgba(26,29,33,0.9); backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  #attach, #voice-btn {
+    width: 40px; height: 40px; border: none; border-radius: 50%;
+    background: rgba(255,255,255,0.04); color: #9ca3af; font-size: 17px;
+    cursor: pointer; flex-shrink: 0; transition: 0.15s;
+  }
+  #attach:hover, #voice-btn:hover { background: rgba(255,255,255,0.08); color: #e8eaed; }
+  #attach:disabled, #voice-btn:disabled { opacity: 0.4; }
   #voice-btn.recording { background: #e74c3c; color: white; animation: pulse-rec 1s infinite; }
   @keyframes pulse-rec { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); } 50% { box-shadow: 0 0 0 8px rgba(231,76,60,0); } }
-  #input { flex: 1; padding: 12px 18px; border: none; border-radius: 24px; background: #f5f6f8; color: #1a1a1a; font-size: 14px; outline: none; min-width: 0; }
-  #input:focus { background: #e4e6eb; }
-  #input::placeholder { color: #b0b3b8; }
-  #send { width: 44px; height: 44px; border: none; border-radius: 50%; background: #2aabee; color: white; font-size: 18px; cursor: pointer; flex-shrink: 0; transition: 0.15s; }
-  #send:disabled { background: #d0d3d8; }
+  #input {
+    flex: 1; padding: 12px 18px; border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 24px; background: rgba(255,255,255,0.04);
+    color: #e8eaed; font-size: 14px; outline: none; min-width: 0;
+    transition: 0.15s;
+  }
+  #input:focus { background: rgba(255,255,255,0.06); border-color: rgba(42,171,238,0.4); }
+  #input::placeholder { color: #4b5563; }
+  #send {
+    width: 44px; height: 44px; border: none; border-radius: 50%;
+    background: var(--accent, #2aabee); color: white; font-size: 18px;
+    cursor: pointer; flex-shrink: 0; transition: 0.15s;
+    box-shadow: 0 4px 12px rgba(42,171,238,0.3);
+  }
+  #send:hover { filter: brightness(1.1); }
+  #send:disabled { background: #2a2d32; box-shadow: none; }
 
-  #reply-bar { display: none; padding: 8px 16px; background: #f0f2f5; border-top: 1px solid #e4e6eb; font-size: 12px; color: #65676b; align-items: center; gap: 8px; }
+  #reply-bar { display: none; padding: 8px 16px; background: rgba(42,171,238,0.08); border-top: 1px solid rgba(42,171,238,0.15); font-size: 12px; color: #9ca3af; align-items: center; gap: 8px; }
   #reply-bar.active { display: flex; }
   #reply-bar .text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #reply-bar button { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; }
 
-  #recording-bar { display: none; padding: 8px 16px; background: #fff0f0; border-top: 1px solid #ffd0d0; font-size: 12px; color: #e74c3c; align-items: center; gap: 8px; }
+  #recording-bar { display: none; padding: 8px 16px; background: rgba(231,76,60,0.1); border-top: 1px solid rgba(231,76,60,0.2); font-size: 12px; color: #e74c3c; align-items: center; gap: 8px; }
   #recording-bar.active { display: flex; }
   #recording-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #e74c3c; animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.3; } }
 
-  /* Панель аватарки */
-  #avatar-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 110; }
+  /* ===== DRAWER КОНТАКТОВ ===== */
+  #drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 100; }
+  #drawer-overlay.active { display: block; }
+  #drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 85vw;
+    background: #1a1d21; z-index: 101; display: flex; flex-direction: column;
+    transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.21, 1.02, 0.73, 1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  #drawer.open { transform: translateX(0); }
+  #drawer-header { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  #drawer-header h2 { font-size: 18px; font-weight: 700; color: var(--accent, #2aabee); margin-bottom: 12px; }
+  #add-contact-row { display: flex; gap: 6px; }
+  #add-contact-row input { flex: 1; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.04); color: #e8eaed; font-size: 13px; outline: none; }
+  #add-contact-row input:focus { border-color: rgba(42,171,238,0.4); }
+  #add-contact-row button { padding: 8px 12px; border: none; border-radius: 10px; background: var(--accent, #2aabee); color: white; font-size: 13px; font-weight: 700; cursor: pointer; }
+  #contacts-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .contact-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; cursor: pointer; transition: background 0.15s; }
+  .contact-item:hover { background: rgba(255,255,255,0.04); }
+  .contact-item .c-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent, #2aabee); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden; }
+  .contact-item .c-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .contact-item .c-name { flex: 1; font-size: 14px; color: #e8eaed; }
+  .contact-item .c-del { background: none; border: none; color: #4b5563; font-size: 14px; cursor: pointer; padding: 4px; }
+  #drawer-footer { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+  #drawer-footer button { width: 100%; padding: 10px; border: none; border-radius: 10px; background: rgba(255,255,255,0.04); color: #9ca3af; font-size: 13px; cursor: pointer; }
+  #drawer-footer button:hover { background: rgba(255,255,255,0.08); color: #e8eaed; }
+
+  /* ===== АВАТАРКА ===== */
+  #avatar-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 110; backdrop-filter: blur(4px); }
   #avatar-panel.active { display: flex; }
-  #avatar-inner { background: #fff; border-radius: 20px; padding: 24px; width: 90%; max-width: 320px; text-align: center; color: #1a1a1a; }
-  #avatar-inner h3 { margin-bottom: 16px; font-size: 18px; }
-  #avatar-preview { width: 120px; height: 120px; border-radius: 50%; background: #2aabee; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; font-weight: 600; overflow: hidden; }
+  #avatar-inner { background: #24272c; border-radius: 20px; padding: 24px; width: 90%; max-width: 320px; text-align: center; color: #e8eaed; border: 1px solid rgba(255,255,255,0.06); }
+  #avatar-inner h3 { margin-bottom: 16px; font-size: 17px; }
+  #avatar-preview { width: 120px; height: 120px; border-radius: 50%; background: var(--accent, #2aabee); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; font-weight: 700; overflow: hidden; }
   #avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
   #avatar-inner input[type=file] { display: none; }
-  #avatar-inner label { display: inline-block; padding: 10px 20px; border-radius: 20px; background: #f5f6f8; color: #1a1a1a; font-size: 14px; cursor: pointer; margin-bottom: 10px; }
-  #avatar-close { width: 100%; padding: 12px; border: none; border-radius: 12px; background: #f5f6f8; color: #1a1a1a; font-size: 14px; cursor: pointer; margin-top: 8px; }
+  #avatar-inner label { display: inline-block; padding: 10px 20px; border-radius: 12px; background: rgba(255,255,255,0.06); color: #e8eaed; font-size: 14px; cursor: pointer; margin-bottom: 10px; }
+  #avatar-close { width: 100%; padding: 12px; border: none; border-radius: 12px; background: rgba(255,255,255,0.04); color: #9ca3af; font-size: 14px; cursor: pointer; margin-top: 8px; }
 
   @media (max-width: 700px) {
-    #sidebar { position: absolute; top: 0; bottom: 0; left: 0; z-index: 30; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
-    #sidebar.hidden { transform: translateX(-100%); }
-    #menu-btn { display: block; }
+    #app { border-radius: 0; }
   }
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="sidebar">
-    <div id="sidebar-header">
-      <h1>Урал</h1>
-      <div id="add-contact-row">
-        <input type="text" id="add-contact-input" placeholder="Имя пользователя" maxlength="20">
-        <button id="add-contact-btn">+</button>
-      </div>
+  <div id="header">
+    <div class="avatar" id="user-avatar">?</div>
+    <div class="info">
+      <div class="name" id="room-name-display">Комната</div>
+      <div class="status" id="status">Подключение...</div>
     </div>
-    <div id="contacts-list"></div>
-    <div id="sidebar-footer">
-      <button id="settings-btn">⚙️ Настройки</button>
-    </div>
+    <button class="icon-btn" id="notify-btn" title="Уведомления">🔔</button>
+    <button class="icon-btn" id="contacts-btn" title="Контакты">☰</button>
+    <button class="icon-btn" id="settings-btn" title="Настройки">⚙️</button>
   </div>
 
   <div id="main">
-    <div id="header">
-      <button id="menu-btn">☰</button>
-      <div class="avatar" id="user-avatar">?</div>
-      <div class="info">
-        <div class="name" id="room-name-display">Комната</div>
-        <div class="status" id="status">Подключение...</div>
-      </div>
-      <button class="icon-btn" id="notify-btn" title="Уведомления">🔔</button>
-    </div>
-    <div id="online-list"></div>
+    <div id="online-strip"></div>
     <div id="messages"></div>
     <div id="reply-bar">
       <span class="text" id="reply-text"></span>
@@ -165,10 +231,25 @@
     <div id="input-area">
       <button id="attach" title="Фото">📎</button>
       <input type="file" id="file-input" accept="image/*" hidden>
-      <input type="text" id="input" placeholder="Написать сообщение..." disabled>
+      <input type="text" id="input" placeholder="Сообщение..." disabled>
       <button id="voice-btn" title="Голосовое" disabled>🎤</button>
       <button id="send" disabled>➤</button>
     </div>
+  </div>
+</div>
+
+<div id="drawer-overlay"></div>
+<div id="drawer">
+  <div id="drawer-header">
+    <h2>Урал</h2>
+    <div id="add-contact-row">
+      <input type="text" id="add-contact-input" placeholder="Имя пользователя" maxlength="20">
+      <button id="add-contact-btn">+</button>
+    </div>
+  </div>
+  <div id="contacts-list"></div>
+  <div id="drawer-footer">
+    <button id="drawer-close">Закрыть</button>
   </div>
 </div>
 
@@ -194,6 +275,9 @@
   const currentRoom = localStorage.getItem('chat_saved_room');
   if (!myName || !currentRoom) { window.location.href = 'index.html'; }
 
+  document.documentElement.style.setProperty('--accent', localStorage.getItem('chat_accent') || '#2aabee');
+  document.documentElement.style.setProperty('--chat-bg', localStorage.getItem('chat_bg') || '#1a1d21');
+
   const messagesEl = document.getElementById('messages');
   const inputEl = document.getElementById('input');
   const sendBtn = document.getElementById('send');
@@ -202,7 +286,7 @@
   const roomNameDisplay = document.getElementById('room-name-display');
   const attachBtn = document.getElementById('attach');
   const fileInput = document.getElementById('file-input');
-  const onlineList = document.getElementById('online-list');
+  const onlineStrip = document.getElementById('online-strip');
   const replyBar = document.getElementById('reply-bar');
   const replyText = document.getElementById('reply-text');
   const cancelReply = document.getElementById('cancel-reply');
@@ -210,7 +294,8 @@
   const recordingBar = document.getElementById('recording-bar');
   const recordingTime = document.getElementById('recording-time');
   const cancelRecording = document.getElementById('cancel-recording');
-  const sidebar = document.getElementById('sidebar');
+  const drawer = document.getElementById('drawer');
+  const drawerOverlay = document.getElementById('drawer-overlay');
 
   let isSending = false;
   let replyToId = null;
@@ -270,6 +355,13 @@
     } catch (e) { statusEl.textContent = 'Ошибка: ' + e.message; }
   };
 
+  // Drawer
+  function openDrawer() { drawer.classList.add('open'); drawerOverlay.classList.add('active'); renderContacts(); }
+  function closeDrawer() { drawer.classList.remove('open'); drawerOverlay.classList.remove('active'); }
+  document.getElementById('contacts-btn').onclick = openDrawer;
+  document.getElementById('drawer-close').onclick = closeDrawer;
+  drawerOverlay.onclick = closeDrawer;
+
   // Контакты
   function getContacts() { return JSON.parse(localStorage.getItem('chat_contacts') || '[]'); }
   function saveContacts(list) { localStorage.setItem('chat_contacts', JSON.stringify(list)); }
@@ -277,7 +369,7 @@
   async function renderContacts() {
     const list = document.getElementById('contacts-list');
     const contacts = getContacts();
-    if (contacts.length === 0) { list.innerHTML = '<p style="color:#b0b3b8;font-size:13px;padding:20px;text-align:center;">Нет контактов</p>'; return; }
+    if (contacts.length === 0) { list.innerHTML = '<p style="color:#4b5563;font-size:13px;padding:20px;text-align:center;">Нет контактов</p>'; return; }
     list.innerHTML = '';
     const { data } = await supabase.from('profiles').select('user_name, avatar_url').in('user_name', contacts);
     const map = {}; (data || []).forEach(p => map[p.user_name] = p.avatar_url);
@@ -351,6 +443,7 @@
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') { statusEl.textContent = 'онлайн'; inputEl.disabled = false; sendBtn.disabled = false; voiceBtn.disabled = !navigator.mediaDevices; inputEl.focus(); }
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') statusEl.textContent = 'Переподключение...';
       });
 
     supabase.channel('reactions-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, () => loadReactions()).subscribe();
@@ -359,7 +452,7 @@
     presenceChannel.on('presence', { event: 'sync' }, () => {
       const state = presenceChannel.presenceState();
       const users = Object.values(state).flat().map(p => p.user_name);
-      onlineList.innerHTML = users.map(u => `<span class="online-badge"><span class="dot-avatar" data-name="${escapeHtml(u)}"></span>${escapeHtml(u)}</span>`).join('');
+      onlineStrip.innerHTML = users.map(u => `<span class="online-badge"><span class="dot-avatar" data-name="${escapeHtml(u)}"></span>${escapeHtml(u)}</span>`).join('');
       loadAvatarsForBadges(users);
     }).subscribe(async (status) => { if (status === 'SUBSCRIBED') await presenceChannel.track({ user_name: myName }); });
 
@@ -373,8 +466,6 @@
     document.getElementById('settings-btn').onclick = () => { window.location.href = 'settings.html'; };
     document.getElementById('add-contact-btn').onclick = addContact;
     document.getElementById('add-contact-input').onkeydown = (e) => { if (e.key === 'Enter') addContact(); };
-    document.getElementById('menu-btn').onclick = () => sidebar.classList.toggle('hidden');
-    renderContacts();
   }
 
   async function loadAvatarsForBadges(users) {
@@ -489,60 +580,76 @@
     audioChunks = [];
   }
 
-  function addMessage(m) {
+  async function addMessage(m) {
     const isSelf = m.user_name === myName;
     const wrap = document.createElement('div');
     wrap.className = 'msg-wrap ' + (isSelf ? 'self' : 'other');
     wrap.id = 'msg-' + m.id;
-    const div = document.createElement('div');
-    div.className = 'msg ' + (isSelf ? 'self' : 'other');
+    wrap.style.position = 'relative';
+
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'm-avatar';
+    avatarDiv.textContent = m.user_name.charAt(0).toUpperCase();
+    // Подгрузим аватарку асинхронно
+    supabase.from('profiles').select('avatar_url').eq('user_name', m.user_name).single().then(({ data }) => {
+      if (data && data.avatar_url) avatarDiv.innerHTML = `<img src="${escapeHtml(data.avatar_url)}" alt="">`;
+    }).catch(() => {});
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'm-body';
+
     const time = m.created_at ? new Date(m.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '';
-    const nameHtml = !isSelf ? `<div class="name">${escapeHtml(m.user_name)}</div>` : '';
+    const headHtml = `<div class="m-head"><span class="m-name">${escapeHtml(m.user_name)}</span><span class="m-time">${time}</span></div>`;
     let replyHtml = '';
     if (m.reply_to && messageMap[m.reply_to]) {
       const r = messageMap[m.reply_to];
       replyHtml = `<div class="reply-quote">↩ ${escapeHtml(r.user_name)}: ${escapeHtml((r.text || (r.image_url ? '📷' : r.audio_url ? '🎤' : '')).slice(0, 50))}</div>`;
     }
-    const textHtml = m.text ? escapeHtml(m.text) : '';
-    const imgHtml = m.image_url ? `<img class="attach" src="${escapeHtml(m.image_url)}" alt="">` : '';
-    const audioHtml = m.audio_url ? `<audio controls preload="metadata" src="${escapeHtml(m.audio_url)}"></audio>` : '';
-    div.innerHTML = `${nameHtml}${replyHtml}${textHtml}${imgHtml}${audioHtml}<span class="time">${time}</span>`;
+    const textHtml = m.text ? `<div class="m-text">${escapeHtml(m.text)}</div>` : '';
+    const imgHtml = m.image_url ? `<div class="m-text"><img class="attach" src="${escapeHtml(m.image_url)}" alt=""></div>` : '';
+    const audioHtml = m.audio_url ? `<div class="m-text"><audio controls preload="metadata" src="${escapeHtml(m.audio_url)}"></audio></div>` : '';
+    bodyDiv.innerHTML = headHtml + replyHtml + textHtml + imgHtml + audioHtml;
 
-    const actions = document.createElement('div');
-    actions.className = 'actions';
+    const ctx = document.createElement('div');
+    ctx.className = 'ctx';
     const rBtn = document.createElement('button'); rBtn.textContent = '😊';
-    rBtn.onclick = (e) => { e.stopPropagation(); const em = prompt('Эмодзи:'); if (em) toggleReaction(m.id, em); actions.classList.remove('show'); };
-    actions.appendChild(rBtn);
+    rBtn.onclick = (e) => { e.stopPropagation(); const em = prompt('Эмодзи:'); if (em) toggleReaction(m.id, em); ctx.classList.remove('show'); };
+    ctx.appendChild(rBtn);
     const repBtn = document.createElement('button'); repBtn.textContent = '↩';
     repBtn.onclick = (e) => {
       e.stopPropagation();
       replyToId = m.id; replyToText = m.text || (m.image_url ? '📷' : m.audio_url ? '🎤' : '');
       replyText.textContent = `Ответ ${m.user_name}: ${replyToText.slice(0, 40)}`;
-      replyBar.classList.add('active'); inputEl.focus(); actions.classList.remove('show');
+      replyBar.classList.add('active'); inputEl.focus(); ctx.classList.remove('show');
     };
-    actions.appendChild(repBtn);
+    ctx.appendChild(repBtn);
     if (isSelf) {
       const eBtn = document.createElement('button'); eBtn.textContent = '✏️';
-      eBtn.onclick = async (e) => { e.stopPropagation(); const t = prompt('Новый текст:', m.text || ''); if (t !== null) await supabase.from('messages').update({ text: t }).eq('id', m.id); actions.classList.remove('show'); };
-      actions.appendChild(eBtn);
+      eBtn.onclick = async (e) => { e.stopPropagation(); const t = prompt('Новый текст:', m.text || ''); if (t !== null) await supabase.from('messages').update({ text: t }).eq('id', m.id); ctx.classList.remove('show'); };
+      ctx.appendChild(eBtn);
       const dBtn = document.createElement('button'); dBtn.textContent = '🗑️';
-      dBtn.onclick = async (e) => { e.stopPropagation(); if (confirm('Удалить?')) await supabase.from('messages').delete().eq('id', m.id); actions.classList.remove('show'); };
-      actions.appendChild(dBtn);
+      dBtn.onclick = async (e) => { e.stopPropagation(); if (confirm('Удалить?')) await supabase.from('messages').delete().eq('id', m.id); ctx.classList.remove('show'); };
+      ctx.appendChild(dBtn);
     }
 
     let timer = null;
-    const start = () => { timer = setTimeout(() => actions.classList.add('show'), 500); };
+    const start = () => { timer = setTimeout(() => ctx.classList.add('show'), 500); };
     const stop = () => clearTimeout(timer);
-    div.addEventListener('touchstart', start, { passive: true });
-    div.addEventListener('touchend', stop);
-    div.addEventListener('touchmove', stop);
-    div.addEventListener('mousedown', start);
-    div.addEventListener('mouseup', stop);
-    div.addEventListener('mouseleave', stop);
+    wrap.addEventListener('touchstart', start, { passive: true });
+    wrap.addEventListener('touchend', stop);
+    wrap.addEventListener('touchmove', stop);
+    wrap.addEventListener('mousedown', start);
+    wrap.addEventListener('mouseup', stop);
+    wrap.addEventListener('mouseleave', stop);
+    document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) ctx.classList.remove('show'); });
 
     const reactionsDiv = document.createElement('div'); reactionsDiv.className = 'reactions';
-    div.appendChild(actions); div.appendChild(reactionsDiv);
-    wrap.appendChild(div); messagesEl.appendChild(wrap);
+    bodyDiv.appendChild(reactionsDiv);
+
+    wrap.appendChild(avatarDiv);
+    wrap.appendChild(bodyDiv);
+    wrap.appendChild(ctx);
+    messagesEl.appendChild(wrap);
     messagesEl.scrollTop = messagesEl.scrollHeight;
     renderReactions(m.id, reactionsDiv);
   }
