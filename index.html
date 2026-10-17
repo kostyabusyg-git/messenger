@@ -8,25 +8,66 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0e1621; color: #f5f5f5; }
+
   #app { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #17212b; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
   @media (min-width: 481px) { #app { top: 20px; bottom: 20px; border-radius: 16px; } }
+
   .screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: #17212b; transition: opacity 0.25s, transform 0.25s; }
   .screen.hidden { opacity: 0; pointer-events: none; transform: scale(0.98); }
+
+  /* ---- ЭКРАН ВХОДА ---- */
+  #auth-screen {
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 40px 30px;
+    overflow-y: auto;
+    min-height: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+  #auth-screen > * { flex-shrink: 0; }
+
+  #auth-screen .logo {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent, #2aabee), #229ed9);
+    display: flex; align-items: center; justify-content: center;
+    animation: float 3s ease-in-out infinite;
+    box-shadow: 0 8px 32px rgba(42,171,238,0.3);
+  }
   #auth-screen .logo svg { display: block; }
   @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-  #auth-screen h2 { font-weight: 600; font-size: 22px; }
-  #auth-screen .subtitle { font-size: 13px; color: #7d8b99; margin-top: -10px; }
-  #auth-screen input { width: 100%; max-width: 300px; padding: 14px 20px; border: 1px solid #2b3a4a; border-radius: 28px; background: #242f3d; color: #f5f5f5; font-size: 15px; outline: none; text-align: center; transition: 0.2s; }
+
+  #auth-screen h2 { font-weight: 600; font-size: 22px; text-align: center; }
+  #auth-screen .subtitle { font-size: 13px; color: #7d8b99; margin-top: -10px; text-align: center; }
+
+  #auth-screen input {
+    width: 100%; max-width: 300px;
+    padding: 14px 20px;
+    border: 1px solid #2b3a4a; border-radius: 28px;
+    background: #242f3d; color: #f5f5f5; font-size: 15px;
+    outline: none; text-align: center; transition: 0.2s;
+  }
   #auth-screen input:focus { border-color: var(--accent, #2aabee); box-shadow: 0 0 0 4px rgba(42,171,238,0.12); }
+
   .auth-tabs { display: flex; gap: 8px; background: #1c2733; padding: 4px; border-radius: 24px; }
   .auth-tab { padding: 10px 24px; border: none; border-radius: 20px; background: transparent; color: #7d8b99; font-size: 14px; cursor: pointer; transition: 0.2s; font-weight: 500; }
   .auth-tab.active { background: var(--accent, #2aabee); color: white; box-shadow: 0 4px 12px rgba(42,171,238,0.3); }
+
   .auth-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
   .auth-form.hidden { display: none; }
-  .auth-form button { padding: 14px 40px; border: none; border-radius: 28px; background: var(--accent, #2aabee); color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 16px rgba(42,171,238,0.3); }
+  .auth-form button {
+    padding: 14px 40px; border: none; border-radius: 28px;
+    background: var(--accent, #2aabee); color: white;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: 0.2s; box-shadow: 0 4px 16px rgba(42,171,238,0.3);
+  }
   .auth-form button:hover { filter: brightness(1.1); transform: translateY(-1px); }
   .auth-form button:active { transform: scale(0.97); }
   #auth-error { color: #e74c3c; font-size: 13px; min-height: 20px; text-align: center; }
+
+  /* ---- ЧАТ ---- */
   #chat-screen { display: flex; flex-direction: column; }
   #header { padding: 14px 18px; background: #1c2733; border-bottom: 1px solid #101921; display: flex; align-items: center; gap: 12px; flex-shrink: 0; z-index: 2; }
   #header .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--accent, #2aabee), #229ed9); display: flex; align-items: center; justify-content: center; font-size: 19px; color: white; font-weight: 600; flex-shrink: 0; cursor: pointer; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
@@ -36,9 +77,11 @@
   #header .info .status { font-size: 12px; color: #7d8b99; word-break: break-word; }
   #header .icon-btn { background: none; border: none; color: #7d8b99; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 10px; transition: 0.2s; flex-shrink: 0; }
   #header .icon-btn:hover { background: #242f3d; color: #fff; }
+
   #online-list { display: flex; gap: 6px; padding: 0 18px 10px; flex-wrap: wrap; align-items: center; }
   .online-badge { display: flex; align-items: center; gap: 4px; font-size: 11px; background: #242f3d; color: #a0b0c0; padding: 3px 10px 3px 3px; border-radius: 14px; }
   .online-badge .dot-avatar { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--accent, #2aabee), #229ed9); display: flex; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: 600; }
+
   #messages { flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: var(--chat-bg, #0e1621); background-size: cover; background-position: center; transition: background 0.3s; }
   #messages::-webkit-scrollbar { width: 4px; }
   #messages::-webkit-scrollbar-thumb { background: #2b3a4a; border-radius: 4px; }
@@ -61,6 +104,7 @@
   .reaction-badge { font-size: 11px; background: #242f3d; color: #e1e1e1; padding: 3px 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
   .reaction-badge:hover { background: #2b3a4a; }
   .reaction-badge.mine { background: var(--accent, #2aabee); color: white; }
+
   #input-area { padding: 10px 14px; background: #1c2733; border-top: 1px solid #101921; display: flex; gap: 6px; align-items: center; flex-shrink: 0; padding-bottom: max(10px, env(safe-area-inset-bottom)); z-index: 2; }
   #attach, #voice-btn { width: 38px; height: 38px; border: none; border-radius: 50%; background: #242f3d; color: #a0b0c0; font-size: 17px; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
   #attach:hover, #voice-btn:hover { background: #2b3a4a; }
@@ -75,14 +119,18 @@
   #send:hover { filter: brightness(1.1); transform: translateY(-1px); }
   #send:active { transform: scale(0.92); }
   #send:disabled { background: #3a4a5a; box-shadow: none; }
+
   #reply-bar { display: none; padding: 8px 14px; background: #1c2733; border-top: 1px solid #101921; font-size: 12px; color: #7d8b99; align-items: center; gap: 8px; }
   #reply-bar.active { display: flex; }
   #reply-bar .text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #reply-bar button { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; }
+
   #recording-bar { display: none; padding: 8px 14px; background: #3a1a1a; border-top: 1px solid #5a2a2a; font-size: 12px; color: #e74c3c; align-items: center; gap: 8px; }
   #recording-bar.active { display: flex; }
   #recording-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #e74c3c; animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.3; } }
+
+  /* ---- НАСТРОЙКИ ---- */
   #settings-screen { background: #17212b; }
   #settings-header { padding: 16px 18px; background: #1c2733; border-bottom: 1px solid #101921; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
   #settings-header h2 { font-size: 18px; font-weight: 600; flex: 1; }
@@ -122,17 +170,19 @@
 <body>
 
 <div id="app">
+  <!-- ЭКРАН ВХОДА -->
   <div id="auth-screen" class="screen">
-  <div class="logo">
-    <svg viewBox="0 0 100 100" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 70 L30 35 L45 55 L60 25 L90 70 Z" fill="#ffffff" opacity="0.95"/>
-      <path d="M10 70 L30 35 L45 55 L60 25 L90 70 Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M60 25 L70 40 L65 42 L60 35 L55 42 L50 40 Z" fill="#e8f4ff" opacity="0.9"/>
-      <text x="50" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">У</text>
-    </svg>
-  </div>
-  <h2>Урал мессенджер</h2>
-  <div class="subtitle">Общайся с миром</div>
+    <div class="logo">
+      <svg viewBox="0 0 100 100" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 70 L30 35 L45 55 L60 25 L90 70 Z" fill="#ffffff" opacity="0.95"/>
+        <path d="M10 70 L30 35 L45 55 L60 25 L90 70 Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M60 25 L70 40 L65 42 L60 35 L55 42 L50 40 Z" fill="#e8f4ff" opacity="0.9"/>
+        <text x="50" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">У</text>
+      </svg>
+    </div>
+    <h2>Урал мессенджер</h2>
+    <div class="subtitle">Общайся с миром</div>
+    <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login">Войти</button>
       <button class="auth-tab" id="tab-create">Создать</button>
     </div>
@@ -151,6 +201,7 @@
     <div id="auth-error"></div>
   </div>
 
+  <!-- ЧАТ -->
   <div id="chat-screen" class="screen hidden">
     <div id="header">
       <div class="avatar" id="user-avatar">?</div>
@@ -181,6 +232,7 @@
     </div>
   </div>
 
+  <!-- НАСТРОЙКИ -->
   <div id="settings-screen" class="screen hidden">
     <div id="settings-header">
       <button id="settings-back">←</button>
@@ -241,6 +293,8 @@
         <div class="settings-section">
           <h3>Информация</h3>
           <div class="info-row"><span>Мессенджер</span><span class="value">Урал</span></div>
+          <div class="info-row"><span>Комната</span><span class="value" id="about-room">—</span></div>
+          <div class="info-row"><span>Онлайн</span><span class="value" id="about-online">—</span></div>
           <div class="info-row"><span>Версия</span><span class="value">2.1</span></div>
         </div>
       </div>
