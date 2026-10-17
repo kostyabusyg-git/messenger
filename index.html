@@ -11,6 +11,7 @@
   #app { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #17212b; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
   @media (min-width: 481px) { #app { top: 20px; bottom: 20px; border-radius: 12px; } }
 
+  /* Вход */
   #auth-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 30px; overflow-y: auto; }
   #auth-screen .logo { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent, #2aabee), #229ed9); display: flex; align-items: center; justify-content: center; font-size: 36px; animation: float 3s ease-in-out infinite; }
   @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
@@ -27,6 +28,7 @@
   .auth-form button:active { transform: scale(0.96); }
   #auth-error { color: #e74c3c; font-size: 13px; min-height: 18px; text-align: center; }
 
+  /* Чат */
   #chat-screen { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
   #chat-screen.hidden { display: none !important; }
   #header { padding: 14px 18px; background: #1c2733; border-bottom: 1px solid #101921; display: flex; align-items: center; gap: 10px; flex-shrink: 0; z-index: 2; }
@@ -40,7 +42,15 @@
   #online-list { display: flex; gap: 4px; padding: 0 18px 8px; flex-wrap: wrap; }
   .online-badge { font-size: 10px; background: #242f3d; color: #a0b0c0; padding: 2px 8px; border-radius: 10px; }
 
-  #messages { flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  #messages {
+    flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    padding: 16px; display: flex; flex-direction: column; gap: 8px;
+    scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    background: var(--chat-bg, #0e1621);
+    background-size: cover; background-position: center;
+    transition: background 0.3s;
+  }
   #messages::-webkit-scrollbar { width: 4px; }
   #messages::-webkit-scrollbar-thumb { background: #2b3a4a; border-radius: 4px; }
   .msg-wrap { display: flex; flex-direction: column; flex-shrink: 0; }
@@ -68,6 +78,7 @@
   #attach:hover, #voice-btn:hover { background: #2b3a4a; }
   #attach:active, #voice-btn:active { transform: scale(0.92); }
   #attach:disabled, #voice-btn:disabled { opacity: 0.5; }
+  #voice-btn.recording { background: #e74c3c; color: white; }
   #input { flex: 1; padding: 10px 14px; border: none; border-radius: 20px; background: #242f3d; color: #f5f5f5; font-size: 14px; outline: none; transition: 0.2s; min-width: 0; }
   #input:focus { background: #2b3a4a; }
   #input::placeholder { color: #6c7883; }
@@ -88,7 +99,7 @@
 
   #settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 100; animation: fadeIn 0.2s; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  #settings-panel { background: #1c2733; border-radius: 16px; padding: 24px; width: 90%; max-width: 360px; color: #f5f5f5; animation: popIn 0.2s; }
+  #settings-panel { background: #1c2733; border-radius: 16px; padding: 24px; width: 90%; max-width: 360px; color: #f5f5f5; animation: popIn 0.2s; max-height: 90vh; overflow-y: auto; }
   @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   #settings-panel h3 { margin-bottom: 16px; font-weight: 600; }
   .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #2b3a4a; }
@@ -98,7 +109,7 @@
   .toggle.on { background: var(--accent, #2aabee); }
   .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: 0.2s; }
   .toggle.on::after { transform: translateX(20px); }
-  .colors { display: flex; gap: 8px; }
+  .colors { display: flex; gap: 8px; flex-wrap: wrap; }
   .colors button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
   .colors button:hover { transform: scale(1.1); }
   .colors button.active { border-color: #fff; }
@@ -211,12 +222,16 @@
   let audioChunks = [];
   let recordingStartTime = 0;
   let recordingInterval = null;
+  let isRecording = false;
+  let currentStream = null;
 
   const settings = {
     sound: localStorage.getItem('chat_sound') !== 'off',
-    accent: localStorage.getItem('chat_accent') || '#2aabee'
+    accent: localStorage.getItem('chat_accent') || '#2aabee',
+    bg: localStorage.getItem('chat_bg') || '#0e1621'
   };
   document.documentElement.style.setProperty('--accent', settings.accent);
+  document.documentElement.style.setProperty('--chat-bg', settings.bg);
 
   let audioCtx = null;
   function playPing() {
@@ -341,7 +356,7 @@
       inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
       attachBtn.addEventListener('click', () => { if (!isSending) fileInput.click(); });
       fileInput.addEventListener('change', handleFileUpload);
-      voiceBtn.addEventListener('click', startVoiceRecording);
+      voiceBtn.addEventListener('click', toggleVoiceRecording);
       cancelRecording.addEventListener('click', cancelVoiceRecording);
       cancelReply.addEventListener('click', () => { replyToId = null; replyToText = ''; replyBar.classList.remove('active'); });
     }
@@ -408,27 +423,23 @@
     finally { isSending = false; sendBtn.disabled = false; attachBtn.disabled = false; inputEl.focus(); }
   }
 
+  async function toggleVoiceRecording() {
+    if (!isRecording) await startVoiceRecording();
+    else await stopAndSendVoice();
+  }
+
   async function startVoiceRecording() {
     if (!navigator.mediaDevices) { statusEl.textContent = 'Голосовые не поддерживаются'; return; }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(currentStream, { mimeType: 'audio/webm' });
       audioChunks = [];
       mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach(t => t.stop());
-        if (audioChunks.length === 0) return;
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        const path = `voice_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.webm`;
-        statusEl.textContent = 'Голосовое: загрузка...';
-        const { error: uploadError } = await supabase.storage.from('chat-images').upload(path, blob, { contentType: 'audio/webm', upsert: false });
-        if (uploadError) { statusEl.textContent = 'Голосовое: ' + uploadError.message; return; }
-        const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(path);
-        const { error: insertError } = await supabase.from('messages').insert({ user_name: myName, text: '', image_url: null, audio_url: urlData.publicUrl, room: currentRoom, reply_to: replyToId || null });
-        if (insertError) statusEl.textContent = 'Голосовое: ' + insertError.message;
-        else { statusEl.textContent = `Вы: ${myName}`; replyToId = null; replyToText = ''; replyBar.classList.remove('active'); }
-      };
       mediaRecorder.start();
+      isRecording = true;
+      voiceBtn.classList.add('recording');
+      voiceBtn.textContent = '➤';
+      voiceBtn.title = 'Отправить голосовое';
       recordingStartTime = Date.now();
       recordingBar.classList.add('active');
       recordingInterval = setInterval(() => {
@@ -438,11 +449,44 @@
     } catch (e) { statusEl.textContent = 'Микрофон: ' + e.message; }
   }
 
+  async function stopAndSendVoice() {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+    isRecording = false;
+    recordingBar.classList.remove('active');
+    if (recordingInterval) clearInterval(recordingInterval);
+
+    const done = new Promise(resolve => { mediaRecorder.onstop = resolve; });
+    mediaRecorder.stop();
+    await done;
+
+    if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
+    voiceBtn.classList.remove('recording');
+    voiceBtn.textContent = '🎤';
+    voiceBtn.title = 'Голосовое';
+
+    if (audioChunks.length === 0) { statusEl.textContent = 'Голосовое: пустая запись'; return; }
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const path = `voice_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.webm`;
+    statusEl.textContent = 'Голосовое: загрузка...';
+    const { error: uploadError } = await supabase.storage.from('chat-images').upload(path, blob, { contentType: 'audio/webm', upsert: false });
+    if (uploadError) { statusEl.textContent = 'Голосовое: ' + uploadError.message; return; }
+    const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(path);
+    const { error: insertError } = await supabase.from('messages').insert({ user_name: myName, text: '', image_url: null, audio_url: urlData.publicUrl, room: currentRoom, reply_to: replyToId || null });
+    if (insertError) statusEl.textContent = 'Голосовое: ' + insertError.message;
+    else { statusEl.textContent = `Вы: ${myName}`; replyToId = null; replyToText = ''; replyBar.classList.remove('active'); }
+    audioChunks = [];
+  }
+
   function cancelVoiceRecording() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.onstop = null;
       mediaRecorder.stop();
     }
+    if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
+    isRecording = false;
+    voiceBtn.classList.remove('recording');
+    voiceBtn.textContent = '🎤';
+    voiceBtn.title = 'Голосовое';
     recordingBar.classList.remove('active');
     if (recordingInterval) clearInterval(recordingInterval);
     audioChunks = [];
@@ -526,13 +570,22 @@
       <div id="settings-panel">
         <h3>⚙️ Настройки</h3>
         <div class="setting-row"><label>Звук</label><button class="toggle ${settings.sound ? 'on' : ''}" id="toggle-sound"></button></div>
-        <div class="setting-row"><label>Цвет</label>
+        <div class="setting-row"><label>Цвет акцента</label>
           <div class="colors">
             <button style="background:#2aabee" data-color="#2aabee" class="${settings.accent==='#2aabee'?'active':''}"></button>
             <button style="background:#e74c3c" data-color="#e74c3c" class="${settings.accent==='#e74c3c'?'active':''}"></button>
             <button style="background:#2ecc71" data-color="#2ecc71" class="${settings.accent==='#2ecc71'?'active':''}"></button>
             <button style="background:#9b59b6" data-color="#9b59b6" class="${settings.accent==='#9b59b6'?'active':''}"></button>
             <button style="background:#f39c12" data-color="#f39c12" class="${settings.accent==='#f39c12'?'active':''}"></button>
+          </div>
+        </div>
+        <div class="setting-row"><label>Фон чата</label>
+          <div class="colors">
+            <button style="background:#0e1621;border:2px solid #2b3a4a" data-bg="#0e1621" class="${settings.bg==='#0e1621'?'active':''}"></button>
+            <button style="background:#1a2332;border:2px solid #2b3a4a" data-bg="#1a2332" class="${settings.bg==='#1a2332'?'active':''}"></button>
+            <button style="background:#2b1a1a;border:2px solid #2b3a4a" data-bg="#2b1a1a" class="${settings.bg==='#2b1a1a'?'active':''}"></button>
+            <button style="background:#1a2b1a;border:2px solid #2b3a4a" data-bg="#1a2b1a" class="${settings.bg==='#1a2b1a'?'active':''}"></button>
+            <button style="background:linear-gradient(135deg,#1a2332,#2b1a3a);border:2px solid #2b3a4a" data-bg="linear-gradient(135deg,#1a2332,#2b1a3a)" class="${settings.bg==='linear-gradient(135deg,#1a2332,#2b1a3a)'?'active':''}"></button>
           </div>
         </div>
         <button id="settings-close">Закрыть</button>
@@ -550,12 +603,21 @@
     document.getElementById('logout-btn').addEventListener('click', () => {
       localStorage.removeItem('chat_saved_name'); localStorage.removeItem('chat_saved_room'); location.reload();
     });
-    settingsOverlay.querySelectorAll('.colors button').forEach(btn => {
+    settingsOverlay.querySelectorAll('[data-color]').forEach(btn => {
       btn.addEventListener('click', () => {
         settings.accent = btn.dataset.color;
         localStorage.setItem('chat_accent', settings.accent);
         document.documentElement.style.setProperty('--accent', settings.accent);
-        settingsOverlay.querySelectorAll('.colors button').forEach(b => b.classList.remove('active'));
+        settingsOverlay.querySelectorAll('[data-color]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+    settingsOverlay.querySelectorAll('[data-bg]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        settings.bg = btn.dataset.bg;
+        localStorage.setItem('chat_bg', settings.bg);
+        document.documentElement.style.setProperty('--chat-bg', settings.bg);
+        settingsOverlay.querySelectorAll('[data-bg]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       });
     });
@@ -563,4 +625,4 @@
   function closeSettings() { if (settingsOverlay) { settingsOverlay.remove(); settingsOverlay = null; } }
 </script>
 </body>
- </html>
+</html>
