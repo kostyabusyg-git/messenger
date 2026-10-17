@@ -5,65 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Настройки — Урал</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#17212b">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a1a; }
-  #app { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #fff; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.08); }
-  @media (min-width: 481px) { #app { top: 20px; bottom: 20px; border-radius: 20px; } }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--chat-bg, #0e1621); color: var(--text, #fff); }
+  :root {
+    --accent: #2aabee;
+    --chat-bg: #0e1621;
+    --header-bg: #17212b;
+    --input-bg: #242f3d;
+    --text: #fff;
+    --text-secondary: #7d8b99;
+    --border: rgba(0,0,0,0.3);
+  }
+  :root.light {
+    --chat-bg: #f0f2f5;
+    --header-bg: #ffffff;
+    --input-bg: #f5f6f8;
+    --text: #1a1a1a;
+    --text-secondary: #65676b;
+    --border: rgba(0,0,0,0.08);
+  }
+  #app { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: var(--chat-bg); display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.15); }
+  @media (min-width: 481px) { #app { top: 20px; bottom: 20px; border-radius: 16px; } }
 
-  #header { padding: 16px 18px; background: #fff; border-bottom: 1px solid #e4e6eb; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  #header { padding: 14px 16px; background: var(--header-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
   #header h2 { font-size: 18px; font-weight: 700; flex: 1; }
-  #header button { background: none; border: none; color: #65676b; font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
-  #header button:hover { background: #f5f6f8; }
+  #header button { background: none; border: none; color: var(--text-secondary); font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+  #header button:hover { background: rgba(128,128,128,0.15); color: var(--text); }
 
-  #tabs { display: flex; padding: 0 12px; background: #fff; border-bottom: 1px solid #e4e6eb; flex-shrink: 0; overflow-x: auto; }
-  .tab { padding: 12px 14px; border: none; background: none; color: #65676b; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
-  .tab.active { color: #2aabee; border-bottom-color: #2aabee; }
+  #tabs { display: flex; padding: 0 8px; background: var(--header-bg); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
+  .tab { padding: 12px 14px; border: none; background: none; color: var(--text-secondary); font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-  #content { flex: 1; overflow-y: auto; padding: 16px; background: #f0f2f5; }
+  #content { flex: 1; overflow-y: auto; padding: 16px; }
   .page { display: none; flex-direction: column; gap: 14px; }
   .page.active { display: flex; animation: fadeIn 0.2s; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-  .section { background: #fff; border-radius: 14px; padding: 4px 16px; }
-  .section h3 { font-size: 12px; color: #65676b; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 4px; font-weight: 700; }
-  .item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f2f5; }
+  .section { background: var(--header-bg); border-radius: 14px; padding: 4px 16px; }
+  .section h3 { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 4px; font-weight: 700; }
+  .item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
   .item:last-child { border-bottom: none; }
-  .item label { font-size: 14px; color: #1a1a1a; }
+  .item label { font-size: 14px; color: var(--text); }
 
-  .toggle { width: 48px; height: 28px; border-radius: 14px; background: #d0d3d8; border: none; cursor: pointer; position: relative; transition: 0.2s; flex-shrink: 0; }
-  .toggle.on { background: #2aabee; }
+  .toggle { width: 48px; height: 28px; border-radius: 14px; background: rgba(128,128,128,0.3); border: none; cursor: pointer; position: relative; transition: 0.2s; flex-shrink: 0; }
+  .toggle.on { background: var(--accent); }
   .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
   .toggle.on::after { transform: translateX(20px); }
 
   .color-grid { display: flex; gap: 10px; flex-wrap: wrap; padding: 12px 0; }
   .color-grid button { width: 36px; height: 36px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: 0.2s; }
   .color-grid button:hover { transform: scale(1.1); }
-  .color-grid button.active { border-color: #fff; box-shadow: 0 0 0 2px #2aabee; }
+  .color-grid button.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--accent); }
 
   .bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 0; }
   .bg-grid button { height: 60px; border-radius: 10px; border: 3px solid transparent; cursor: pointer; transition: 0.2s; }
   .bg-grid button:hover { transform: scale(1.03); }
-  .bg-grid button.active { border-color: #fff; box-shadow: 0 0 0 2px #2aabee; }
+  .bg-grid button.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--accent); }
 
   .chip-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 0; }
-  .chip { padding: 8px 16px; border: 2px solid transparent; border-radius: 20px; background: #f5f6f8; color: #65676b; font-size: 13px; cursor: pointer; font-weight: 500; }
-  .chip.active { border-color: #2aabee; color: #2aabee; background: #e8f6fe; }
+  .chip { padding: 8px 16px; border: 2px solid transparent; border-radius: 20px; background: rgba(128,128,128,0.15); color: var(--text-secondary); font-size: 13px; cursor: pointer; font-weight: 500; }
+  .chip.active { border-color: var(--accent); color: var(--accent); background: rgba(42,171,238,0.1); }
 
-  .btn-danger { width: 100%; padding: 14px; border: none; border-radius: 12px; background: #fff0f0; color: #e74c3c; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-  .btn-danger:hover { background: #ffe0e0; }
-  .btn-primary { width: 100%; padding: 14px; border: none; border-radius: 12px; background: #2aabee; color: white; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(42,171,238,0.3); }
+  .btn-danger { width: 100%; padding: 14px; border: none; border-radius: 12px; background: rgba(231,76,60,0.1); color: #e74c3c; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+  .btn-danger:hover { background: rgba(231,76,60,0.2); }
+  .btn-primary { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--accent); color: white; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; }
   .btn-primary:hover { filter: brightness(1.05); }
 
-  .info-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
+  .info-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
   .info-row:last-child { border-bottom: none; }
-  .info-row .value { color: #65676b; }
+  .info-row .value { color: var(--text-secondary); }
 
-  #avatar-preview { width: 80px; height: 80px; border-radius: 50%; background: #2aabee; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: 600; overflow: hidden; margin: 12px auto; }
+  #avatar-preview { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: 600; overflow: hidden; margin: 12px auto; }
   #avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
-  #avatar-btn { display: block; width: 100%; padding: 10px; border: none; border-radius: 10px; background: #f5f6f8; color: #1a1a1a; font-size: 13px; cursor: pointer; margin-top: 4px; }
+  #avatar-btn { display: block; width: 100%; padding: 10px; border: none; border-radius: 10px; background: rgba(128,128,128,0.15); color: var(--text); font-size: 13px; cursor: pointer; margin-top: 4px; }
+  #avatar-file { display: none; }
 </style>
 </head>
 <body>
@@ -84,6 +102,7 @@
         <h3>Профиль</h3>
         <div id="avatar-preview">?</div>
         <button id="avatar-btn">Изменить аватарку</button>
+        <input type="file" id="avatar-file" accept="image/*">
       </div>
       <div class="section">
         <h3>Информация</h3>
@@ -100,6 +119,13 @@
 
     <div class="page" data-page="appearance">
       <div class="section">
+        <h3>Тема</h3>
+        <div class="chip-row" id="theme-grid">
+          <button class="chip" data-theme="dark">🌙 Тёмная</button>
+          <button class="chip" data-theme="light">☀️ Светлая</button>
+        </div>
+      </div>
+      <div class="section">
         <h3>Цвет акцента</h3>
         <div class="color-grid" id="color-grid">
           <button style="background:#2aabee" data-color="#2aabee"></button>
@@ -113,12 +139,12 @@
       <div class="section">
         <h3>Фон чата</h3>
         <div class="bg-grid" id="bg-grid">
+          <button style="background:#0e1621" data-bg="#0e1621"></button>
+          <button style="background:#17212b" data-bg="#17212b"></button>
+          <button style="background:#1a2332" data-bg="#1a2332"></button>
           <button style="background:#f0f2f5" data-bg="#f0f2f5"></button>
           <button style="background:#e8f6fe" data-bg="#e8f6fe"></button>
-          <button style="background:#fff0f0" data-bg="#fff0f0"></button>
-          <button style="background:#f0fff4" data-bg="#f0fff4"></button>
-          <button style="background:linear-gradient(135deg,#e8f6fe,#f0e8fe)" data-bg="linear-gradient(135deg,#e8f6fe,#f0e8fe)"></button>
-          <button style="background:linear-gradient(135deg,#f0f2f5,#e8f6fe)" data-bg="linear-gradient(135deg,#f0f2f5,#e8f6fe)"></button>
+          <button style="background:linear-gradient(135deg,#1a2332,#2b1a3a)" data-bg="linear-gradient(135deg,#1a2332,#2b1a3a)"></button>
         </div>
       </div>
       <div class="section">
@@ -133,8 +159,8 @@
         <h3>Скругление сообщений</h3>
         <div class="chip-row" id="radius-grid">
           <button class="chip" data-radius="8">Квадратные</button>
-          <button class="chip" data-radius="18">Скруглённые</button>
-          <button class="chip" data-radius="26">Круглые</button>
+          <button class="chip" data-radius="12">Скруглённые</button>
+          <button class="chip" data-radius="20">Круглые</button>
         </div>
       </div>
     </div>
@@ -160,7 +186,7 @@
       <div class="section">
         <h3>Информация</h3>
         <div class="info-row"><span>Мессенджер</span><span class="value">Урал</span></div>
-        <div class="info-row"><span>Версия</span><span class="value">3.1</span></div>
+        <div class="info-row"><span>Версия</span><span class="value">4.0</span></div>
         <div class="info-row"><span>Технологии</span><span class="value">PWA + Supabase</span></div>
         <div class="info-row"><span>Сделано</span><span class="value">для класса</span></div>
       </div>
@@ -173,6 +199,12 @@
   const currentRoom = localStorage.getItem('chat_saved_room');
   if (!myName || !currentRoom) { window.location.href = 'index.html'; }
 
+  // Применяем тему
+  const savedTheme = localStorage.getItem('chat_theme') || 'dark';
+  if (savedTheme === 'light') document.documentElement.classList.add('light');
+  document.documentElement.style.setProperty('--accent', localStorage.getItem('chat_accent') || '#2aabee');
+  document.documentElement.style.setProperty('--chat-bg', localStorage.getItem('chat_bg') || (savedTheme === 'light' ? '#f0f2f5' : '#0e1621'));
+
   document.getElementById('profile-name').textContent = myName;
   document.getElementById('profile-room').textContent = currentRoom.startsWith('dm_') ? '@' + currentRoom.replace('dm_','') : '#' + currentRoom;
 
@@ -182,7 +214,6 @@
   else preview.textContent = myName.charAt(0).toUpperCase();
 
   document.getElementById('back-btn').onclick = () => { window.location.href = 'chat.html'; };
-  document.getElementById('avatar-btn').onclick = () => { window.location.href = 'chat.html'; };
   document.getElementById('change-room-btn').onclick = () => {
     localStorage.removeItem('chat_saved_room');
     window.location.href = 'index.html';
@@ -203,18 +234,32 @@
   });
 
   const settings = {
+    theme: savedTheme,
     accent: localStorage.getItem('chat_accent') || '#2aabee',
-    bg: localStorage.getItem('chat_bg') || '#f0f2f5',
+    bg: localStorage.getItem('chat_bg') || (savedTheme === 'light' ? '#f0f2f5' : '#0e1621'),
     font: localStorage.getItem('chat_font') || '14',
-    radius: localStorage.getItem('chat_radius') || '18',
+    radius: localStorage.getItem('chat_radius') || '12',
     sound: localStorage.getItem('chat_sound') !== 'off',
     time: localStorage.getItem('chat_time') !== 'off'
   };
+
+  document.querySelectorAll('#theme-grid .chip').forEach(btn => {
+    if (btn.dataset.theme === settings.theme) btn.classList.add('active');
+    btn.onclick = () => {
+      settings.theme = btn.dataset.theme;
+      localStorage.setItem('chat_theme', settings.theme);
+      if (settings.theme === 'light') document.documentElement.classList.add('light');
+      else document.documentElement.classList.remove('light');
+      document.querySelectorAll('#theme-grid .chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+  });
 
   document.querySelectorAll('#color-grid button').forEach(btn => {
     if (btn.dataset.color === settings.accent) btn.classList.add('active');
     btn.onclick = () => {
       localStorage.setItem('chat_accent', btn.dataset.color);
+      document.documentElement.style.setProperty('--accent', btn.dataset.color);
       document.querySelectorAll('#color-grid button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     };
@@ -224,6 +269,7 @@
     if (btn.dataset.bg === settings.bg) btn.classList.add('active');
     btn.onclick = () => {
       localStorage.setItem('chat_bg', btn.dataset.bg);
+      document.documentElement.style.setProperty('--chat-bg', btn.dataset.bg);
       document.querySelectorAll('#bg-grid button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     };
@@ -261,6 +307,30 @@
     settings.time = !settings.time;
     localStorage.setItem('chat_time', settings.time ? 'on' : 'off');
     toggleTime.classList.toggle('on', settings.time);
+  };
+
+  // Загрузка аватарки прямо в настройках
+  document.getElementById('avatar-btn').onclick = () => document.getElementById('avatar-file').click();
+  document.getElementById('avatar-file').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Только фото'); return; }
+    if (file.size > 2 * 1024 * 1024) { alert('Файл до 2 МБ'); return; }
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `avatar_${myName}_${Date.now()}.${ext}`;
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const supabase = createClient(
+      'https://ekqnbtjjqatvwsxlzenr.supabase.co',
+      'sb_publishable_AK4tP549G2IjTkSOeNvC4g_Z2ViaGc_'
+    );
+    const { error } = await supabase.storage.from('chat-images').upload(path, file, { contentType: file.type, upsert: true });
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    const { data } = supabase.storage.from('chat-images').getPublicUrl(path);
+    localStorage.setItem('chat_avatar_' + myName, data.publicUrl);
+    await supabase.from('profiles').upsert({ user_name: myName, avatar_url: data.publicUrl });
+    const preview = document.getElementById('avatar-preview');
+    preview.innerHTML = `<img src="${data.publicUrl}" alt="">`;
+    alert('Аватарка обновлена');
   };
 </script>
 </body>
