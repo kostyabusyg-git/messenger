@@ -13,12 +13,12 @@
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0e1621; color: #f5f5f5; }
   #app { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #17212b; display: flex; flex-direction: column; overflow: hidden; }
   @media (min-width: 481px) { #app { top: 20px; bottom: 20px; border-radius: 16px; } }
-  #header { padding: 14px 18px; background: #1c2733; border-bottom: 1px solid #101921; display: flex; align-items: center; gap: 12px; flex-shrink: 0; z-index: 2; }
+  #header { padding: 14px 18px; background: #1c2733; border-bottom: 1px solid #101921; display: flex; align-items: center; gap: 10px; flex-shrink: 0; z-index: 2; }
   #header .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #2aabee, #229ed9); display: flex; align-items: center; justify-content: center; font-size: 19px; color: white; font-weight: 600; flex-shrink: 0; }
   #header .info { flex: 1; min-width: 0; }
   #header .info .name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #header .info .status { font-size: 12px; color: #7d8b99; word-break: break-word; }
-  #header .icon-btn { background: none; border: none; color: #7d8b99; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 10px; flex-shrink: 0; }
+  #header .icon-btn { background: none; border: none; color: #7d8b99; font-size: 20px; cursor: pointer; padding: 6px; border-radius: 10px; flex-shrink: 0; }
   #header .icon-btn:hover { background: #242f3d; color: #fff; }
   #online-list { display: flex; gap: 6px; padding: 0 18px 10px; flex-wrap: wrap; align-items: center; }
   .online-badge { display: flex; align-items: center; gap: 4px; font-size: 11px; background: #242f3d; color: #a0b0c0; padding: 3px 10px 3px 3px; border-radius: 14px; }
@@ -63,6 +63,16 @@
   #recording-bar.active { display: flex; }
   #recording-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #e74c3c; animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.3; } }
+  #contacts-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 100; }
+  #contacts-panel.active { display: flex; }
+  #contacts-inner { background: #1c2733; border-radius: 16px; padding: 20px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+  #contacts-inner h3 { margin-bottom: 16px; font-size: 17px; }
+  .contact-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+  .contact-item:hover { background: #242f3d; }
+  .contact-item .c-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2aabee, #229ed9); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; flex-shrink: 0; }
+  .contact-item .c-name { font-size: 15px; }
+  #contacts-close { width: 100%; padding: 12px; border: none; border-radius: 12px; background: #242f3d; color: #f5f5f5; font-size: 14px; cursor: pointer; margin-top: 12px; }
+  #contacts-close:hover { background: #2b3a4a; }
 </style>
 </head>
 <body>
@@ -73,6 +83,7 @@
       <div class="name" id="room-name-display">Комната</div>
       <div class="status" id="status">Подключение...</div>
     </div>
+    <button class="icon-btn" id="contacts-btn" title="Контакты">👥</button>
     <button class="icon-btn" id="settings-btn">⚙️</button>
   </div>
   <div id="online-list"></div>
@@ -95,6 +106,15 @@
     <button id="send" disabled>➤</button>
   </div>
 </div>
+
+<div id="contacts-panel">
+  <div id="contacts-inner">
+    <h3>👥 Контакты</h3>
+    <div id="contacts-list"></div>
+    <button id="contacts-close">Закрыть</button>
+  </div>
+</div>
+
 <script type="module">
   const SUPABASE_URL = 'https://ekqnbtjjqatvwsxlzenr.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_AK4tP549G2IjTkSOeNvC4g_Z2ViaGc_';
@@ -123,7 +143,7 @@
   const cancelRecording = document.getElementById('cancel-recording');
 
   avatarEl.textContent = myName.charAt(0).toUpperCase();
-  roomNameDisplay.textContent = '# ' + currentRoom;
+  updateHeaderTitle();
 
   let isSending = false;
   let replyToId = null;
@@ -141,6 +161,19 @@
   let currentStream = null;
 
   document.documentElement.style.setProperty('--chat-bg', localStorage.getItem('chat_bg') || '#0e1621');
+
+  function updateHeaderTitle() {
+    if (currentRoom.startsWith('dm_')) {
+      const parts = currentRoom.replace('dm_', '').split('_');
+      const other = parts.find(p => p.toLowerCase() !== myName.toLowerCase()) || parts[0];
+      roomNameDisplay.textContent = '@' + other;
+    } else {
+      roomNameDisplay.textContent = '# ' + currentRoom;
+    }
+  }
+
+  // Регистрируем профиль
+  supabase.from('profiles').upsert({ user_name: myName }).then(() => {}).catch(() => {});
 
   async function initChat() {
     statusEl.textContent = 'Загрузка истории...';
@@ -172,7 +205,6 @@
 
     supabase.channel('reactions-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, () => loadReactions()).subscribe();
 
-    // Presence (онлайн)
     presenceChannel = supabase.channel('presence-' + currentRoom, { config: { presence: { key: myName } } });
     presenceChannel.on('presence', { event: 'sync' }, () => {
       const state = presenceChannel.presenceState();
@@ -190,6 +222,36 @@
     cancelRecording.onclick = cancelVoiceRecording;
     cancelReply.onclick = () => { replyToId = null; replyToText = ''; replyBar.classList.remove('active'); };
     document.getElementById('settings-btn').onclick = () => { window.location.href = 'settings.html'; };
+    document.getElementById('contacts-btn').onclick = openContacts;
+    document.getElementById('contacts-close').onclick = () => document.getElementById('contacts-panel').classList.remove('active');
+  }
+
+  async function openContacts() {
+    const panel = document.getElementById('contacts-panel');
+    const list = document.getElementById('contacts-list');
+    panel.classList.add('active');
+    list.innerHTML = 'Загрузка...';
+    const { data, error } = await supabase.from('profiles').select('user_name').order('user_name');
+    if (error) { list.innerHTML = 'Ошибка: ' + error.message; return; }
+    const others = (data || []).filter(p => p.user_name !== myName);
+    if (others.length === 0) { list.innerHTML = '<p style="color:#7d8b99;font-size:14px;">Пока никого нет. Пусть друзья зайдут в мессенджер.</p>'; return; }
+    list.innerHTML = '';
+    others.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'contact-item';
+      div.innerHTML = `<div class="c-avatar">${escapeHtml(p.user_name.charAt(0).toUpperCase())}</div><div class="c-name">${escapeHtml(p.user_name)}</div>`;
+      div.onclick = () => {
+        const room = dmRoom(myName, p.user_name);
+        localStorage.setItem('chat_saved_room', room);
+        window.location.reload();
+      };
+      list.appendChild(div);
+    });
+  }
+
+  function dmRoom(a, b) {
+    const [x, y] = [a.toLowerCase(), b.toLowerCase()].sort();
+    return 'dm_' + x + '_' + y;
   }
 
   async function loadReactions() {
