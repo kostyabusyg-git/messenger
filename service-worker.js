@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ural-v1';
+const CACHE_NAME = 'ural-v2';
 const ASSETS = [
   './',
   './index.html',
